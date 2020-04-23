@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using AndroidUtility;
 public class TestCode : MonoBehaviour
 {
     public Text LogText;
     public void Click_AndroidToast(string msg)
     {
-        AndroidTools.AndroidToast(msg);
+        AndroidTools.showAsToast(msg);
     }
     public void Click_AndroidToast_LENGTH_LONG(string msg)
     {
-        AndroidTools.AndroidToast(msg, ToastDuration.LENGTH_LONG);
+        AndroidTools.showAsToast(msg, ToastDuration.LENGTH_LONG);
     }
     public void Click_AndroidLog(string msg)
     {
@@ -21,10 +22,10 @@ public class TestCode : MonoBehaviour
         AndroidTools.AndroidLog(msg, "my tag w", LogLevel.w);
         AndroidTools.AndroidLog(msg, "my tag E", LogLevel.e);
     }
-    public InputField input;
+    public InputField installInput;
     public void Click_Install_Apk()
     {
-        AndroidTools.InstallAPP(input.text);
+        AndroidTools.InstallAPP(installInput.text);
     }
     public void Click_GetWIFIState()
     {
@@ -38,6 +39,21 @@ public class TestCode : MonoBehaviour
         List<string> list = AndroidTools.GetAllPkg();
         AndroidTools.AndroidLog(list.Count.ToString(), "GetAllPkg", LogLevel.e);
     }
+    public InputField unstallInput;
+    public void Click_02_UnstallApp()
+    {
+      AndroidTools.UnstallApp(unstallInput.text);
+    }
+
+    public void Click_03_SelectPic()
+    {
+        //先设置jar和AndroidMainfiest
+        @"先设置jar和AndroidMainfiest，在SelectPicture\Android有文件".showAsToast();
+        return;
+        SelectPic p = new SelectPic();
+        p.selectPic();
+    }
+
     // Use this for initialization
     void Start()
     {

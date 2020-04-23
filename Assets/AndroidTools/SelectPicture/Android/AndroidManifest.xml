@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.unity3d.player"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:installLocation="preferExternal"
+    package="com.unity3d.player.UnityPlayer"
+	android:installLocation="preferExternal"
     android:versionCode="1"
     android:versionName="1.0">
 
-  <!--获取WiFi状态-->
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-  <!--删除应用-->
-    <permission android:name="android.permission.DELETE_PACKAGES" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
     <supports-screens
         android:smallScreens="true"
         android:normalScreens="true"
@@ -19,14 +16,13 @@
         android:anyDensity="true"/>
 
     <application
-        android:theme="@style/UnityThemeSelector"
-        android:icon="@drawable/app_icon"
-        android:label="@string/app_name">
-      <!-- 
-        <activity android:name="com.unity3d.player.UnityPlayerActivity"
-      -->
+		android:theme="@style/UnityThemeSelector"
+		android:icon="@drawable/app_icon"
+        android:label="@string/app_name"
+        android:debuggable="true">
         <activity android:name="com.unity3d.player.MainActivity"
-                  android:label="@string/app_name">
+                  android:label="@string/app_name"
+                  android:theme="@android:style/Theme.NoTitleBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
