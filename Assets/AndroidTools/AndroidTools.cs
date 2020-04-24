@@ -135,8 +135,90 @@ namespace AndroidUtility
             }
             return apks;
         }
+        /*public static boolean isRunning(Context context, String packageName) {
+                ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+                List<RunningAppProcessInfo> infos = am.getRunningAppProcesses();
+                for (RunningAppProcessInfo rapi : infos) {
+                    if (rapi.processName.equals(packageName))
+                        return true;
+                }
+                return false;
+            }         */
+        /// <summary>
+        /// 判断指定包名的进程是否运行
+        /// </summary>
+        /// <returns></returns>
+        public static bool IsAppRunning(string pkg)
+        {
+            AndroidJavaClass Context = new AndroidJavaClass("android.content.Context");
+            AndroidJavaObject systemServices = UnityAppContext.Call<AndroidJavaObject>("getSystemService", Context.GetStatic<AndroidJavaObject>("ACTIVITY_SERVICE"));
 
+            AndroidJavaObject runningAppInfos = systemServices.Call<AndroidJavaObject>("getRunningAppProcesses");
+            AndroidJavaObject[] runningApps = runningAppInfos.Call<AndroidJavaObject[]>("toArray");
+            Debug.Log("running apps Length:"+ runningApps.Length);
+            for (int i = 0; i < runningApps.Length; i++)
+            {
+                AndroidLog(runningApps[i].Get<AndroidJavaObject>("processName").ToCString(), "RunningApp", LogLevel.i);
+                AndroidJavaObject appName = runningApps[i].Get<AndroidJavaObject>("processName");
+                AndroidLog(appName.ToCString());
+                AndroidLog((appName.ToCString() == pkg).ToString());
+                if (appName.Call<bool>("equals", pkg.ToJavaString()))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /*
+         	public static boolean isServiceRunning(Context mContext, String className) {
+		boolean isRunning = false;
+		ActivityManager activityManager = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
+		List<ActivityManager.RunningServiceInfo> serviceList = activityManager.getRunningServices(100);
+		if (!(serviceList.size() > 0)) {
+			return false;
+		}
+		for (int i = 0; i < serviceList.size(); i++) {
+			String name = serviceList.get(i).service.getClassName();
+			if (name.equals(className) == true) {
+				isRunning = true;
+				break;
+			}
+		}
+		return isRunning;
+	}             */
+        /// <summary>
+        /// 判断指定服务是否运行
+        /// </summary>
+        /// <returns></returns>
+        public static bool IsServiceRunning(string serviceName)
+        {
+            AndroidJavaClass Context = new AndroidJavaClass("android.content.Context");
+            AndroidJavaObject systemServices = UnityAppContext.Call<AndroidJavaObject>("getSystemService", Context.GetStatic<AndroidJavaObject>("ACTIVITY_SERVICE"));
+
+            AndroidJavaObject runningServiceInfos = systemServices.Call<AndroidJavaObject>("getRunningServices",100);
+            AndroidJavaObject[] runningServices = runningServiceInfos.Call<AndroidJavaObject[]>("toArray");
+            Debug.Log("Running service Length:" + runningServices.Length);
+            for (int i = 0; i < runningServices.Length; i++)
+            {
+                AndroidJavaObject info = runningServices[i].Get<AndroidJavaObject>("service");
+                AndroidLog(info.ToCString());
+                AndroidJavaObject className = info.Call<AndroidJavaObject>("getClassName");
+                AndroidLog(className.ToCString());
+                if (className.Call<bool>("equals", serviceName.ToJavaString()))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
         #region Toast Log java与C#string互转
+        /// <summary>
+        /// this string 表示扩展string的原方法
+        /// 两种调用方式：类名静态方法直接调用；"my string".showAsToast();
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="duration"></param>
         public static void showAsToast(this string msg, ToastDuration duration = ToastDuration.LENGTH_SHORT)
         {
 #if UNITY_ANDROID
@@ -240,14 +322,11 @@ namespace AndroidUtility
         /// <param name="pkgName"></param>
         public static void OpenAppByPkg(string pkgName)
         {
-            using (AndroidJavaObject joPackageManager = UnityActivity.Call<AndroidJavaObject>("getPackageManager"))
+            using (AndroidJavaObject joIntent = PackageManager.Call<AndroidJavaObject>("getLaunchIntentForPackage", pkgName))
             {
-                using (AndroidJavaObject joIntent = joPackageManager.Call<AndroidJavaObject>("getLaunchIntentForPackage", pkgName))
+                if (null != joIntent)
                 {
-                    if (null != joIntent)
-                    {
-                        UnityAppContext.Call("startActivity", joIntent);
-                    }
+                    UnityAppContext.Call("startActivity", joIntent);
                 }
             }
         }
@@ -304,14 +383,12 @@ namespace AndroidUtility
         }
 
 
-        /*已测试
-         * <permission android:name="android.permission.DELETE_PACKAGES" />
-public static void unstallApp(Context context,String packageName){
-    Intent uninstall_intent = new Intent(Intent.ACTION_DELETE);
-    uninstall_intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    uninstall_intent.setData(Uri.parse("package:"+packageName));
-    context.startActivity(uninstall_intent);
-}    */
+        /*添加权限 <permission android:name="android.permission.DELETE_PACKAGES" />
+        public static void unstallApp(Context context,String packageName){
+            Intent uninstall_intent = new Intent(Intent.ACTION_DELETE);
+            uninstall_intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            uninstall_intent.setData(Uri.parse("package:"+packageName));
+            context.startActivity(uninstall_intent);}    */
         /// <summary>
         /// 卸载app
         /// </summary>

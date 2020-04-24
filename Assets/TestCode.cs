@@ -39,13 +39,26 @@ public class TestCode : MonoBehaviour
         List<string> list = AndroidTools.GetAllPkg();
         AndroidTools.AndroidLog(list.Count.ToString(), "GetAllPkg", LogLevel.e);
     }
-    public InputField unstallInput;
-    public void Click_02_UnstallApp()
+    public void Click_02_OpenlApp()
     {
-      AndroidTools.UnstallApp(unstallInput.text);
+        AndroidTools.OpenAppByPkg(unstallInput.text);
     }
-
-    public void Click_03_SelectPic()
+    public InputField unstallInput;
+    public void Click_03_UnstallApp()
+    {
+        AndroidTools.UnstallApp(unstallInput.text);
+    }
+    public void Click_04_IsAppRunning()
+    {
+        bool isRun = AndroidTools.IsAppRunning(unstallInput.text);
+        AndroidTools.AndroidLog("Is app Running:" + isRun);
+    }
+    public void Click_04_IsServiceRunning()
+    {
+        bool isRun = AndroidTools.IsServiceRunning(unstallInput.text);
+        AndroidTools.AndroidLog("Is service Running:" + isRun);
+    }
+    public void Click_04_SelectPic()
     {
         //先设置jar和AndroidMainfiest
         @"先设置jar和AndroidMainfiest，在SelectPicture\Android有文件".showAsToast();
