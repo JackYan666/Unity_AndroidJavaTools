@@ -55,6 +55,7 @@ public class TestCode : MonoBehaviour
     }
     public void Click_04_IsServiceRunning()
     {
+
         bool isRun = AndroidTools.IsServiceRunning(unstallInput.text);
         AndroidTools.AndroidLog("Is service Running:" + isRun);
     }
@@ -65,6 +66,11 @@ public class TestCode : MonoBehaviour
         return;
         SelectPic p = new SelectPic();
         p.selectPic();
+    }
+
+    public void Click_05_SetAppScreenBrightness(float value)
+    {
+        AndroidTools.SetAppScreenBrightness(value);
     }
 
     // Use this for initialization

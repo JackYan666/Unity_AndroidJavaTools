@@ -38,6 +38,101 @@ namespace AndroidUtility
         WIFI_STATE_ENABLING = 2,
         WIFI_STATE_ENABLED = 3
     }
+    public enum CursorType
+    {
+        TYPE_CUSTOM = -1,
+
+        /** Type constant: Null icon.  It has no bitmap. */
+        TYPE_NULL = 0,
+
+        /** Type constant: no icons are specified. If all views uses this, then falls back
+         * to the default type, but this is helpful to distinguish a view explicitly want
+         * to have the default icon.
+         * @hide
+         */
+        TYPE_NOT_SPECIFIED = 1,
+
+        /** Type constant: Arrow icon.  (Default mouse pointer) */
+        TYPE_ARROW = 1000,
+
+        /** {@hide} Type constant: Spot hover icon for touchpads. */
+        TYPE_SPOT_HOVER = 2000,
+
+        /** {@hide} Type constant: Spot touch icon for touchpads. */
+        TYPE_SPOT_TOUCH = 2001,
+
+        /** {@hide} Type constant: Spot anchor icon for touchpads. */
+        TYPE_SPOT_ANCHOR = 2002,
+
+        // Type constants for additional predefined icons for mice.
+        /** Type constant: context-menu. */
+        TYPE_CONTEXT_MENU = 1001,
+
+        /** Type constant: hand. */
+        TYPE_HAND = 1002,
+
+        /** Type constant: help. */
+        TYPE_HELP = 1003,
+
+        /** Type constant: wait. */
+        TYPE_WAIT = 1004,
+
+        /** Type constant: cell. */
+        TYPE_CELL = 1006,
+
+        /** Type constant: crosshair. */
+        TYPE_CROSSHAIR = 1007,
+
+        /** Type constant: text. */
+        TYPE_TEXT = 1008,
+
+        /** Type constant: vertical-text. */
+        TYPE_VERTICAL_TEXT = 1009,
+
+        /** Type constant: alias (indicating an alias of/shortcut to something is
+          * to be created. */
+        TYPE_ALIAS = 1010,
+
+        /** Type constant: copy. */
+        TYPE_COPY = 1011,
+
+        /** Type constant: no-drop. */
+        TYPE_NO_DROP = 1012,
+
+        /** Type constant: all-scroll. */
+        TYPE_ALL_SCROLL = 1013,
+
+        /** Type constant: horizontal double arrow mainly for resizing. */
+        TYPE_HORIZONTAL_DOUBLE_ARROW = 1014,
+
+        /** Type constant: vertical double arrow mainly for resizing. */
+        TYPE_VERTICAL_DOUBLE_ARROW = 1015,
+
+        /** Type constant: diagonal double arrow -- top-right to bottom-left. */
+        TYPE_TOP_RIGHT_DIAGONAL_DOUBLE_ARROW = 1016,
+
+        /** Type constant: diagonal double arrow -- top-left to bottom-right. */
+        TYPE_TOP_LEFT_DIAGONAL_DOUBLE_ARROW = 1017,
+
+        /** Type constant: zoom-in. */
+        TYPE_ZOOM_IN = 1018,
+
+        /** Type constant: zoom-out. */
+        TYPE_ZOOM_OUT = 1019,
+
+        /** Type constant: grab. */
+        TYPE_GRAB = 1020,
+
+        /** Type constant: grabbing. */
+        TYPE_GRABBING = 1021,
+
+        // OEM private types should be defined starting at this range to avoid
+        // conflicts with any system types that may be defined in the future.
+        TYPE_OEM_FIRST = 10000,
+
+        /** The default pointer icon. */
+        TYPE_DEFAULT = TYPE_ARROW,
+    }
     #endregion
 
     public static class AndroidTools
@@ -196,6 +291,27 @@ namespace AndroidUtility
             }
             return apks;
         }
+        public static List<string> GetAllBitmap()
+        {
+            List<string> apks = new List<string>();
+            AndroidJavaObject packageInfos = PackageManager.Call<AndroidJavaObject>("getInstalledPackages", 0);
+            AndroidJavaObject[] packages = packageInfos.Call<AndroidJavaObject[]>("toArray");
+            for (int i = 0; i < packages.Length; i++)
+            {
+                AndroidJavaObject applicationInfo = packages[i].Get<AndroidJavaObject>("applicationInfo");
+                if ((applicationInfo.Get<int>("flags") & applicationInfo.GetStatic<int>("FLAG_SYSTEM")) == 0)// 判断是不是系统应用
+                {
+                    //根据自己的需要添加，本列为【应用名|包名】格式
+                    string packageName = applicationInfo.Get<string>("packageName");
+                    AndroidJavaObject applicationLabel = PackageManager.Call<AndroidJavaObject>("getApplicationLabel", applicationInfo);
+                    string packageLable = applicationLabel.Call<string>("toString");
+                    string p = packageLable + "|" + packageName;
+                    AndroidLog(i + ":" + p);
+                    apks.Add(p);
+                }
+            }
+            return apks;
+        }
 
         public static bool IsAppRunning(string pkg)
         {
@@ -303,9 +419,14 @@ namespace AndroidUtility
         {
             using (AndroidJavaObject joIntent = PackageManager.Call<AndroidJavaObject>("getLaunchIntentForPackage", pkgName))
             {
+                AndroidLogI(pkgName + "  start");
                 if (null != joIntent)
                 {
                     UnityAppContext.Call("startActivity", joIntent);
+                }
+                else
+                {
+                    AndroidLogI(pkgName+"  not exist");
                 }
             }
         }
@@ -463,6 +584,53 @@ namespace AndroidUtility
         {
             UnityActivity.Call<AndroidJavaObject>("getWindow").Call("addFlags", 128);
             //讲解：call("方法名",参数1);
+        }
+
+        #region 设置 APP界面屏幕亮度值方法
+        /**  安卓方法
+ * 2.设置 APP界面屏幕亮度值方法
+ **
+        Activity act;
+        private void setAppScreenBrightness(int birghtessValue)
+        {
+            Window window = act.getWindow();
+            WindowManager.LayoutParams lp = window.getAttributes();
+            lp.screenBrightness = birghtessValue / 255.0f;
+            window.setAttributes(lp);
+        }
+ */
+        //Brightness的有效范围是0~1，-1。 若设置为-1则跟随系统亮度
+        //模拟器上厕所无效  应该没问题
+        public static void SetAppScreenBrightness(float birghtessValue)
+        {
+            RunOnUIThread(() =>
+            {
+                AndroidJavaObject window = UnityActivity.Call<AndroidJavaObject>("getWindow");
+                AndroidJavaObject lp = window.Call<AndroidJavaObject>("getAttributes");
+
+                if (birghtessValue != -1f)
+                    birghtessValue = Mathf.Clamp01(birghtessValue);
+                lp.Set("screenBrightness", birghtessValue);
+                window.Call("setAttributes", lp);
+
+                //debug
+                //float b = lp.Get<float>("screenBrightness");
+                //AndroidLogI("Brightness:" + b.ToString());
+            });
+        }
+        #endregion 设置 APP界面屏幕亮度值方法
+
+
+        /*
+        PointerIcon pointerIcon = PointerIcon.getSystemIcon(this, PointerIcon.TYPE_NULL);
+        getWindow().getDecorView().setPointerIcon(pointerIcon);
+         */
+        public static void SetCursor(CursorType cursorType)
+        {
+            AndroidJavaClass PointerIcon = new AndroidJavaClass("android.view.PointerIcon");
+
+            AndroidJavaObject pointerIcon = PointerIcon.CallStatic<AndroidJavaObject>("getSystemIcon", UnityAppContext, cursorType);
+            UnityActivity.Call<AndroidJavaObject>("getWindow").Call<AndroidJavaObject>("getDecorView").Call("setPointerIcon", pointerIcon);
         }
 
         #endregion
